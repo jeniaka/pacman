@@ -10,4 +10,4 @@ A maze-chase arcade game that starts like a 1980 cabinet and then goes wild:
 
 Controls: arrows / WASD (swipe on mobile), M mutes. Type 222 / 333 / 444 / 555 to jump to a phase.
 
-Game link: https://jeniaka.github.io/pacman/
+Game link: https://pacman-gta.pages.dev/
