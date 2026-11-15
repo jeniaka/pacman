@@ -1266,6 +1266,7 @@ function gtaClear(){
   X.traffic=[]; X.ms=null; X.msHtml=null;
 }
 
+const FPS_ENEMY_FIRE=false;
 
 // ================= PHASE 3: HELL MAZE (first-person shooter) =================
 const P3F={hero:[13,13],spawns:[[1,1],[25,1],[1,25],[25,25],[13,1],[1,13],[25,13],[13,25]],exit:null,enemies:5,release:[2,3,4,5.5,7],heroSpd:3.6,enSpd:2.4,fright:7,killOnEat:true,noScatter:true,fps:true,
@@ -1340,8 +1341,8 @@ function fpsTick(dt){
   if((keys.Space||keys.KeyF||keys.KeyJ||keys.ControlLeft||keys.KeyX)) fpsFire();
   heroLight.intensity=lerp(heroLight.intensity,9+Math.sin(t*23)*.6,1-Math.exp(-dt*12));
   hemi.intensity=.5+(Math.random()<.02?-.25:0);
-  // enemies throw fireballs when they have a straight line of sight
-  for(const e of G.en){
+  // enemies only chase (no fireballs): only the player shoots
+  for(const e of (FPS_ENEMY_FIRE?G.en:[])){
     if(e.hp==null){ e.hp=2; e.fireCD=rand(2,4); }
     if(e.st!=='run'||e.fr) continue;
     e.fireCD-=dt; if(e.fireCD>0) continue;
