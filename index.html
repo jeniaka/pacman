@@ -104,7 +104,7 @@ body.mini #score,body.mini #wanted{right:calc(var(--miniw,200px) + 22px)}
   <div class="pstats" id="pstats"></div>
   <div class="pb"><button id="b1">RETRY</button><button id="b2" class="ghost">FROM 1980</button></div>
 </div></div>
-<div id="mute">M · SOUND ON</div>
+<div id="mute">M · SOUND ON · v5</div>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
@@ -178,7 +178,7 @@ function initAudio(){
   const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
   music.next=AC.currentTime+.1;
 }
-function setMute(m){ muted=m; if(master) master.gain.setTargetAtTime(m?0:.7,AC.currentTime,.02); $('mute').textContent='M · SOUND '+(m?'OFF':'ON'); }
+function setMute(m){ muted=m; if(master) master.gain.setTargetAtTime(m?0:.7,AC.currentTime,.02); $('mute').textContent='M · SOUND '+(m?'OFF':'ON')+' · v5'; }
 function tone(o){
   if(!AC) return; const t=o.t??AC.currentTime, d=o.d??.1;
   const os=AC.createOscillator(), g=AC.createGain();
