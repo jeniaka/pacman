@@ -17,12 +17,12 @@ You are MUNCHBOT, a hungry little robot, and the Glitches are after you. It star
 | | Phase | What happens |
 |---|---|---|
 | 1 | **1980** | A classic 2D maze: eat the dots, grab the power diamonds and eat the Glitches back. 20 seconds, then OVERCLOCK. |
-| 2 | **MEAN STREETS** | The same maze rises into a top-down crime city. Grab the cash, answer ringing payphones for 3 jobs (a delivery run, a kill frenzy, surviving the heat), and dodge the glitch cop cars. The screen flashes red and blue as they close in. |
-| 3 | **HELL MAZE** | First person with chunky pixels and rusty corridors. Demons hunt you, your arm cannon is the only gun in the maze, dots are ammo. Health, kills and your face are on the status bar. |
-| 4 | **INFINITY LOOP** | A maze wrapped around a torus in space that never ends. Meteors, a black hole you can eat, and a minimap that scrolls with you. |
+| 2 | **MEAN STREETS** | The same maze rises into a top-down crime city. Grab all the cash to finish, answer ringing payphones for 3 jobs (a delivery run, a kill frenzy, surviving the heat), and dodge the glitch cop cars. The screen flashes red and blue as they close in. Collect 4 green tokens and your crew rolls in for 20 seconds and wrecks the cops for you. |
+| 3 | **HELL MAZE** | First person with chunky pixels and rusty corridors. Demons hunt you (2 shots each), and so does THE BRUTE, a three-eyed boss demon that takes 5 shots and keeps coming back. Your arm cannon is the only gun in the maze and dots are ammo. Eat every dot to get out. |
+| 4 | **INFINITY LOOP** | A maze wrapped around a torus in space that never ends. Meteors, a black hole you can eat, and a minimap that scrolls with you. Clear every dot to wake the boss. |
 | 💀 | **BOSS: THE KERNEL** | A giant spiked core with bullet spirals, row and column lasers, slams and minions. Eat a power core, then ram it five times. |
 
-Win and you can go again with **LOOP ×2**, faster every time.
+Phase 1 moves on by itself after 20 seconds. Phases 2 to 4 have no clock: you move on only when the map is cleared. Win and you can go again with **LOOP ×2**, faster every time.
 
 <div align="center">
 <img src="docs/2-mean-streets.jpg" width="49%"> <img src="docs/3-hell-maze.jpg" width="49%">
