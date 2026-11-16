@@ -78,6 +78,8 @@ body.fps #hearts{display:none}
 body.mini #score,body.mini #wanted{right:calc(var(--miniw,200px) + 22px)}
 @media (max-width:640px){body.mini #score{right:12px;top:calc(var(--minih,60px) + 14px)}body.mini #wanted{right:12px;top:calc(var(--minih,60px) + 38px)}body.pix #hint{bottom:130px}}
 #siren{position:fixed;inset:0;pointer-events:none;opacity:0;box-shadow:inset 0 0 16vmin 5vmin var(--sc,#f00)}
+#left{position:fixed;left:50%;top:50px;transform:translateX(-50%);font-size:clamp(10px,1.6vw,16px);letter-spacing:.12em;color:#ffd040;text-shadow:2px 2px 0 #000,0 0 10px #000;display:none;pointer-events:none;white-space:nowrap}
+@media (max-width:640px){#left{top:auto;bottom:118px}}
 #mute{position:fixed;right:14px;bottom:6px;font-size:7px;opacity:.35;letter-spacing:.1em;pointer-events:none}
 </style>
 </head>
@@ -96,6 +98,7 @@ body.mini #score,body.mini #wanted{right:calc(var(--miniw,200px) + 22px)}
 <canvas id="mini"></canvas>
 <div id="siren"></div>
 <div id="wanted"></div>
+<div id="left"></div>
 <div id="mission"></div>
 <div id="xhair"></div>
 <canvas id="gun" width="160" height="100"></canvas>
@@ -110,7 +113,7 @@ body.mini #score,body.mini #wanted{right:calc(var(--miniw,200px) + 22px)}
   <div class="pstats" id="pstats"></div>
   <div class="pb"><button id="b1">RETRY</button><button id="b2" class="ghost">FROM 1980</button></div>
 </div></div>
-<div id="mute">M · SOUND ON · v8</div>
+<div id="mute">M · SOUND ON · v9</div>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
@@ -184,7 +187,7 @@ function initAudio(){
   const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
   music.next=AC.currentTime+.1;
 }
-function setMute(m){ muted=m; if(master) master.gain.setTargetAtTime(m?0:.7,AC.currentTime,.02); $('mute').textContent='M · SOUND '+(m?'OFF':'ON')+' · v8'; }
+function setMute(m){ muted=m; if(master) master.gain.setTargetAtTime(m?0:.7,AC.currentTime,.02); $('mute').textContent='M · SOUND '+(m?'OFF':'ON')+' · v9'; }
 function tone(o){
   if(!AC) return; const t=o.t??AC.currentTime, d=o.d??.1;
   const os=AC.createOscillator(), g=AC.createGain();
@@ -1546,7 +1549,9 @@ function buildLevel(){
   arc(151.4,157,1.2,3);
   ground(156.5,176); plat(158,161,3.5,false); P.push([159.5,4.9]); E.push({kind:'chase',x0:163,x1:174,y:0});
   block(176,179,14,0,'stone',false);
-  return {S,D,P,E,SP,end:176};
+  // drop any gem that ended up inside a solid block (unreachable)
+  const D2=D.filter(([x,y])=>!S.some(s=>s.type!=='plat'&&x>s.x0-.35&&x<s.x1+.35&&y>s.y0-.2&&y<s.y1+.45));
+  return {S,D:D2,P,E,SP,end:176,gate:171};
 }
 // ---------- props ----------
 let palmGeo=null;
@@ -1626,6 +1631,17 @@ function platSetup(){
     st.position.y=.25; o.add(st); const cap=new THREE.Mesh(new THREE.SphereGeometry(.8,14,8,0,TAU,0,PI/2),new THREE.MeshStandardMaterial({color:0xe02a2a,emissive:0x400000,roughness:.5})); cap.position.y=.45; cap.scale.y=.7; o.add(cap);
     for(let i=0;i<5;i++){ const d=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6),new THREE.MeshStandardMaterial({color:0xffffff})); const a=i/5*TAU; d.position.set(Math.cos(a)*.45,.85,Math.sin(a)*.45); o.add(d); }
     o.position.set(x,y,0); g.add(o); return {x,y,obj:o,cap,sq:0}; });
+  // gate at the end: locked until every gem is collected
+  { const gx=L.gate, gg=new THREE.Group(); gg.position.set(gx,0,-.6); g.add(gg);
+    for(const sx of [-1.35,1.35]){ const p=new THREE.Mesh(boxUV(new THREE.BoxGeometry(.9,4.6,1.4),.9,4.6,1.4),MAT.stone); p.position.set(sx,2.3,0); gg.add(p); }
+    const top=new THREE.Mesh(boxUV(new THREE.BoxGeometry(4.2,.9,1.6),4.2,.9,1.6),MAT.stone); top.position.y=5; gg.add(top);
+    const cap=new THREE.Mesh(new THREE.ConeGeometry(.6,1,4),new THREE.MeshStandardMaterial({color:0xffc040,emissive:0x804000})); cap.position.y=6; gg.add(cap);
+    const portalM=new THREE.MeshBasicMaterial({color:new THREE.Color(.5,.08,.08),transparent:true,opacity:.75,side:THREE.DoubleSide});
+    const portal=new THREE.Mesh(new THREE.PlaneGeometry(1.8,4.5),portalM); portal.position.set(0,2.25,0); gg.add(portal);
+    const bars=new THREE.Group(); gg.add(bars); const bm=new THREE.MeshStandardMaterial({color:0x4a4a52,metalness:.8,roughness:.4});
+    for(let i=0;i<5;i++){ const b=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,4.4,6),bm); b.position.set(-.8+i*.4,2.2,.3); bars.add(b); }
+    const glow=glowSprite(0xff3020,5,.35); glow.position.set(0,2.4,.5); gg.add(glow);
+    PL.gate={x:gx,obj:gg,portal,portalM,bars,glow,open:false,openT:0}; }
   // gems
   PL.gems=L.D.map(([x,y])=>({x,y,alive:true}));
   PL.gemMesh=new THREE.InstancedMesh(gemGeo,new THREE.MeshStandardMaterial({color:0xffd040,emissive:0xb07a00,emissiveIntensity:.8,roughness:.25,metalness:.6}),PL.gems.length); g.add(PL.gemMesh);
@@ -1638,6 +1654,7 @@ function platSetup(){
   // hero + game state shim
   G={m:W3.m,cfg:{dur:999,fright:7,heroSpd:8},t:0,hero:{x:2,y:0,dx:0,dy:0,fx:1,fy:0,alive:true,mouth:0},en:PL.en,small:PL.gems.length,smallTotal:PL.gems.length,dots:PL.gems.length,
     hearts:3,fright:0,frightMax:1,inv:0,turbo:0,ramp:0,fields:{},items:[],bombs:[]};
+  PL.done=false; PL.lockHint=0;
   PL.h={x:2,y:0,vx:0,vy:0,w:.9,hh:1.5,ground:true,on:null,coy:0,jb:0,jumps:0,face:1,sq:1,prevJ:false};
   PL.safe={x:2,y:0};
   A3.hero=makeBot(); lionize(A3.hero); W3.actors.add(A3.hero); A3.hero.userData.fx=1; A3.style='plat';
@@ -1697,6 +1714,13 @@ function platTick(dt){
   // pits
   if(h.y<-6.5){ hurtHero('FELL IN');
     if(Hh.alive){ h.x=PL.safe.x; h.y=PL.safe.y+.2; h.vx=0; h.vy=0; G.inv=Math.max(G.inv,1.5); } }
+  // gate
+  const GT=PL.gate;
+  if(G.small<=0&&!GT.open){ GT.open=true; banner('ALL GEMS!','THE GATE IS OPEN','#ffd040'); SFX.win(); hint('RUN TO THE GATE AT THE END →',3); }
+  if(GT.open){ GT.openT+=dt; GT.bars.position.y=Math.min(4.6,GT.openT*3); GT.portalM.color.setHSL((t*.15)%1,.9,.6); GT.portalM.opacity=.85; GT.glow.material.color.set(0xffd040); GT.glow.material.opacity=.6+Math.sin(t*6)*.2; GT.portal.rotation.y=Math.sin(t*2)*.1;
+    if(Math.abs(h.x-GT.x)<1.1&&h.y<4&&!PL.done){ PL.done=true; SFX.power(); burst(new THREE.Vector3(GT.x,2.4,0),120,['#ffd040','#fff6a0','#ff9a3c','#ffffff'],12,.25,1.4,new THREE.Vector3(0,-1,0),null,0); } }
+  else if(Math.abs(h.x-GT.x)<2.2&&!PL.lockHint){ PL.lockHint=3; hint('THE GATE IS LOCKED · '+G.small+' GEMS LEFT',2.2); }
+  if(PL.lockHint){ PL.lockHint-=dt; if(PL.lockHint<=0) PL.lockHint=0; }
   // gems
   const cx=h.x, cy=h.y+.75;
   for(const gm of PL.gems){ if(gm.alive&&Math.abs(gm.x-cx)<.8&&Math.abs(gm.y-cy)<1.05){ gm.alive=false; G.small--; G.dots--; addScore(10); SFX.munch(); burst(new THREE.Vector3(gm.x,gm.y,0),6,['#ffd040','#fff6a0'],3,.1,.4,null,null,0); } }
@@ -1751,7 +1775,7 @@ function platSync(dt){
   for(const p of PL.pows){ p.obj.rotation.y+=dt*2; p.obj.position.y=p.y+Math.sin(t*3)*.2; }
   updGems(t);
 }
-function platHint(){ return TOUCH?'◀ ▶ RUN · JUMP (TAP AGAIN IN AIR) · STOMP THE GLITCHES · GRAB EVERY GEM':'← → RUN · SPACE / ↑ JUMP (AGAIN IN AIR) · STOMP THE GLITCHES · GRAB EVERY GEM'; }
+function platHint(){ return TOUCH?'◀ ▶ RUN · JUMP (TAP AGAIN IN AIR) · GRAB EVERY GEM TO OPEN THE GATE AT THE END':'← → RUN · SPACE / ↑ JUMP (AGAIN IN AIR) · GRAB EVERY GEM TO OPEN THE GATE AT THE END'; }
 function drawPlatMini(){
   const L=PL.L, cs=1.3, vs=2.6, W=Math.round((L.end+12)*cs), H=Math.round(16*vs), ox=9, oy=10;
   if(miniKey!=='plat'){ miniKey='plat'; miniC.width=W; miniC.height=H; const sc=innerWidth<640?.75:1; miniC.style.width=(W*sc)+'px'; miniC.style.height=(H*sc)+'px'; document.body.style.setProperty('--miniw',(W*sc)+'px'); document.body.style.setProperty('--minih',(H*sc)+'px'); }
@@ -1761,6 +1785,7 @@ function drawPlatMini(){
   g.fillStyle='#ffd040'; for(const gm of PL.gems) if(gm.alive) g.fillRect(X(gm.x)-1,Y(gm.y)-1,2,2);
   if((t*4|0)%2){ g.fillStyle='#29f0ff'; for(const p of PL.pows) if(p.alive) g.fillRect(X(p.x)-2,Y(p.y)-2,4,4); }
   for(const e of PL.en){ if(e.st==='dead') continue; g.fillStyle=e.fr?'#3a8aff':e.col; g.fillRect(X(e.x)-2,Y(e.y+.8)-2,4,4); }
+  if(PL.gate){ g.fillStyle=PL.gate.open?((t*4|0)%2?'#ffd040':'#fff'):'#ff3020'; g.fillRect(X(PL.gate.x)-3,Y(4.6),6,Y(0)-Y(4.6)); }
   const h=PL.h; g.fillStyle='#ffb020'; g.beginPath(); const hx=X(h.x), hy=Y(h.y+.7); g.moveTo(hx+h.face*4,hy); g.lineTo(hx-h.face*3,hy-3); g.lineTo(hx-h.face*3,hy+3); g.fill();
 }
 
@@ -2354,7 +2379,7 @@ function setPhaseUI(n){
 function startPhase(n,opt={}){
   phase=n; hidePanel(); setPhaseUI(n); $('hint').classList.remove('on'); seq=null; timeScale=1; $('warn').style.display='none'; $('bossbar').style.display='none';
   if(n===1){
-    to2D(); bossObj=null; mode='p1'; miniC.style.display='none'; setGlow('#29f0ff'); setSong(null);
+    to2D(); bossObj=null; mode='p1'; miniC.style.display='none'; $('left').style.display='none'; setGlow('#29f0ff'); setSong(null);
     if(opt.title){ P1.st='title'; } else { P1.first=true; p1Start(); }
     return;
   }
@@ -2461,7 +2486,7 @@ function tick3(dt){
   if(seq){ seq.t+=dt; seq.upd(seq.t,clamp(seq.t/seq.dur,0,1),dt); if(seq&&seq.t>=seq.dur){ const d=seq.done; seq=null; if(d) d(); if(!is3) return; } }
   const blocked=seq&&seq.block;
   if(!blocked){
-    if(mode==='play'&&phase===4){ platTick(sdt); if(mode==='play'&&G.small<=0) endPhase(); }
+    if(mode==='play'&&phase===4){ platTick(sdt); if(mode==='play'&&PL.done) endPhase(); }
     else if(mode==='play'){
       mazeTick(sdt); extrasTick(phase,sdt); bombAnimTick(sdt);
       if(mode==='play'&&G.small<=0) endPhase();
@@ -2477,7 +2502,7 @@ function tick3(dt){
   }
 }
 function hud(){
-  if(!is3||!G){ miniC.style.display='none'; document.body.classList.remove('mini'); return; }
+  if(!is3||!G){ miniC.style.display='none'; document.body.classList.remove('mini'); $('left').style.display='none'; return; }
   if(phase!==2||mode!=='play') $('siren').style.opacity=0;
   $('scTxt').textContent=pad(score); $('hiTxt').textContent='HI '+pad(HI);
   if(phase<5){ $('phName').textContent='PHASE '+phase+' · '+NAMES[phase]; $('phBar').style.width=clamp((1-G.small/G.smallTotal)*100,0,100)+'%'; }
@@ -2493,6 +2518,9 @@ function hud(){
     if(show){ const tm=X.msTm!=null?`<span class="tm">${Math.max(0,Math.ceil(X.msTm))}</span>`:''; const html=X.msHtml+tm; if(mi._h!==html){ mi._h=html; mi.innerHTML=html; } } }
   if(phase===2&&G.ramp<=0&&G.fright>0) $('powName').textContent='FRENZY';
   if(phase===3) fpsOverlays();
+  const lf=$('left'), showL=(phase===2||phase===4)&&(mode==='play'||mode==='seq');
+  lf.style.display=showL?'block':'none';
+  if(showL){ const txt=phase===4?(PL.gate&&PL.gate.open?'GATE OPEN → GO!':'GEMS LEFT '+Math.max(0,G.small)):'$ LEFT '+Math.max(0,G.small); if(lf._t!==txt){ lf._t=txt; lf.textContent=txt; } }
   drawMini();
 }
 let last=performance.now(), DTCAP=.05, FRAMES=0;
