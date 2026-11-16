@@ -110,7 +110,7 @@ body.mini #score,body.mini #wanted{right:calc(var(--miniw,200px) + 22px)}
   <div class="pstats" id="pstats"></div>
   <div class="pb"><button id="b1">RETRY</button><button id="b2" class="ghost">FROM 1980</button></div>
 </div></div>
-<div id="mute">M · SOUND ON · v7</div>
+<div id="mute">M · SOUND ON · v8</div>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
@@ -184,7 +184,7 @@ function initAudio(){
   const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
   music.next=AC.currentTime+.1;
 }
-function setMute(m){ muted=m; if(master) master.gain.setTargetAtTime(m?0:.7,AC.currentTime,.02); $('mute').textContent='M · SOUND '+(m?'OFF':'ON')+' · v7'; }
+function setMute(m){ muted=m; if(master) master.gain.setTargetAtTime(m?0:.7,AC.currentTime,.02); $('mute').textContent='M · SOUND '+(m?'OFF':'ON')+' · v8'; }
 function tone(o){
   if(!AC) return; const t=o.t??AC.currentTime, d=o.d??.1;
   const os=AC.createOscillator(), g=AC.createGain();
@@ -1582,6 +1582,27 @@ function buildJungleEnv(L){
     const x=rand(-4,end); const s=L.S.find(s=>s.type==='ground'&&x>s.x0&&x<s.x1); if(!s) continue; f.position.set(x,s.y1,rand(-2,-1.4)); f.scale.setScalar(.8); bg.add(f); }
   hemi.color.set(0xffe0b0); hemi.groundColor.set(0x3a6a2a); hemi.intensity=1.05; sun.color.set(0xffc890); sun.intensity=1.6; sun.position.set(-40,60,50);
 }
+// ---------- lion costume for MUNCHBOT ----------
+function lionize(bot){
+  const ud=bot.userData, body=ud.body;
+  ud.lime.color.set(0xe0a840); ud.lime.emissive.set(0x5a3008); ud.lime.emissiveIntensity=.25;
+  ud.tip.visible=false; body.children.forEach(c=>{ if(c.geometry&&c.geometry.type==='CylinderGeometry'&&c.position.y>1.6) c.visible=false; });
+  ud.thr.material.color.setRGB(2,1,.3);
+  ud.eyes.children.forEach(e=>e.material.color.setRGB(2.2,1.8,.6));
+  const maneM=new THREE.MeshStandardMaterial({color:0xb0521e,roughness:.9}), maneD=new THREE.MeshStandardMaterial({color:0x7a3010,roughness:.95});
+  const mane=new THREE.Group(); mane.position.set(0,.95,-.05); body.add(mane);
+  const tuft=new THREE.SphereGeometry(.34,8,6);
+  for(let i=0;i<16;i++){ const a=i/16*TAU; const m=new THREE.Mesh(tuft,i%2?maneM:maneD); m.position.set(Math.cos(a)*.98,Math.sin(a)*.82,-.08); m.scale.set(1,1,.8); mane.add(m); }
+  for(let i=0;i<10;i++){ const a=i/10*TAU+.3; const m=new THREE.Mesh(tuft,i%2?maneD:maneM); m.position.set(Math.cos(a)*.7,Math.sin(a)*.6,-.45); m.scale.setScalar(1.15); mane.add(m); }
+  const earM=new THREE.MeshStandardMaterial({color:0xe0a840,roughness:.7}), earIn=new THREE.MeshStandardMaterial({color:0x8a4a20});
+  for(const sx of [-1,1]){ const e=new THREE.Mesh(new THREE.SphereGeometry(.2,10,8),earM); e.position.set(sx*.5,1.62,.12); e.scale.set(1,1,.6); body.add(e);
+    const ei=new THREE.Mesh(new THREE.SphereGeometry(.11,8,6),earIn); ei.position.set(sx*.5,1.62,.22); ei.scale.set(1,1,.4); body.add(ei); }
+  const nose=new THREE.Mesh(new THREE.SphereGeometry(.09,8,6),new THREE.MeshStandardMaterial({color:0x3a1a0a})); nose.position.set(0,.88,.74); body.add(nose);
+  const tail=new THREE.Group(); tail.position.set(0,.55,-.7); body.add(tail);
+  const tseg=new THREE.Mesh(new THREE.CylinderGeometry(.06,.08,1.1,6),earM); tseg.position.set(0,.3,-.45); tseg.rotation.x=-1.0; tail.add(tseg);
+  const tt=new THREE.Mesh(new THREE.SphereGeometry(.2,8,6),maneD); tt.position.set(0,.62,-.9); tail.add(tt);
+  ud.tail=tail; ud.lion=true;
+}
 // ---------- setup ----------
 const gemGeo=new THREE.OctahedronGeometry(.32,0);
 function platSetup(){
@@ -1619,7 +1640,7 @@ function platSetup(){
     hearts:3,fright:0,frightMax:1,inv:0,turbo:0,ramp:0,fields:{},items:[],bombs:[]};
   PL.h={x:2,y:0,vx:0,vy:0,w:.9,hh:1.5,ground:true,on:null,coy:0,jb:0,jumps:0,face:1,sq:1,prevJ:false};
   PL.safe={x:2,y:0};
-  A3.hero=makeBot(); W3.actors.add(A3.hero); A3.hero.userData.fx=1; A3.style='plat';
+  A3.hero=makeBot(); lionize(A3.hero); W3.actors.add(A3.hero); A3.hero.userData.fx=1; A3.style='plat';
   updGems(0);
 }
 function updGems(t){
@@ -1714,7 +1735,8 @@ function platSync(dt){
   placeObj(A3.hero,_o,ud.fx,.45,.95);
   A3.hero.scale.set(.95/Math.sqrt(h.sq),.95*h.sq,.95/Math.sqrt(h.sq));
   ud.jawP.rotation.x=Math.abs(h.vx)>.5?Math.abs(Math.sin(Hh.mouth))*.55:.1;
-  const pw=G.fright>0; ud.lime.color.set(pw?0x4affd8:0x5fd83a); ud.lime.emissive.set(pw?0x10ffc0:0x2ad010);
+  const pw=G.fright>0; ud.lime.color.set(pw?0xffe070:0xe0a840); ud.lime.emissive.set(pw?0xff9a10:0x5a3008); ud.lime.emissiveIntensity=pw?.6+Math.sin(t*20)*.2:.25;
+  if(ud.tail) ud.tail.rotation.x=Math.sin(t*(Math.abs(h.vx)>.5?10:3))*.35;
   ud.thr.scale.y=1+(h.ground?0:1.4)+Math.sin(t*30)*.2;
   heroLight.position.set(h.x,h.y+4,4); heroLight.intensity=6; heroLight.color.set(0xffe0b0);
   for(const e of PL.en){
@@ -1739,7 +1761,7 @@ function drawPlatMini(){
   g.fillStyle='#ffd040'; for(const gm of PL.gems) if(gm.alive) g.fillRect(X(gm.x)-1,Y(gm.y)-1,2,2);
   if((t*4|0)%2){ g.fillStyle='#29f0ff'; for(const p of PL.pows) if(p.alive) g.fillRect(X(p.x)-2,Y(p.y)-2,4,4); }
   for(const e of PL.en){ if(e.st==='dead') continue; g.fillStyle=e.fr?'#3a8aff':e.col; g.fillRect(X(e.x)-2,Y(e.y+.8)-2,4,4); }
-  const h=PL.h; g.fillStyle='#7dff4a'; g.beginPath(); const hx=X(h.x), hy=Y(h.y+.7); g.moveTo(hx+h.face*4,hy); g.lineTo(hx-h.face*3,hy-3); g.lineTo(hx-h.face*3,hy+3); g.fill();
+  const h=PL.h; g.fillStyle='#ffb020'; g.beginPath(); const hx=X(h.x), hy=Y(h.y+.7); g.moveTo(hx+h.face*4,hy); g.lineTo(hx-h.face*3,hy-3); g.lineTo(hx-h.face*3,hy+3); g.fill();
 }
 
 
