@@ -113,7 +113,7 @@ body.mini #score,body.mini #wanted{right:calc(var(--miniw,200px) + 22px)}
   <div class="pstats" id="pstats"></div>
   <div class="pb"><button id="b1">RETRY</button><button id="b2" class="ghost">FROM 1980</button></div>
 </div></div>
-<div id="mute">M · SOUND ON · v9</div>
+<div id="mute">M · SOUND ON · v10</div>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
@@ -187,7 +187,7 @@ function initAudio(){
   const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
   music.next=AC.currentTime+.1;
 }
-function setMute(m){ muted=m; if(master) master.gain.setTargetAtTime(m?0:.7,AC.currentTime,.02); $('mute').textContent='M · SOUND '+(m?'OFF':'ON')+' · v9'; }
+function setMute(m){ muted=m; if(master) master.gain.setTargetAtTime(m?0:.7,AC.currentTime,.02); $('mute').textContent='M · SOUND '+(m?'OFF':'ON')+' · v10'; }
 function tone(o){
   if(!AC) return; const t=o.t??AC.currentTime, d=o.d??.1;
   const os=AC.createOscillator(), g=AC.createGain();
@@ -2206,7 +2206,7 @@ function addLaser(hz,c){
   B.lasers.push({hz,c,t:0,mesh,fired:false});
 }
 function startAttack(){
-  const opts=['spiral','lasers','slam','minions'].filter(a=>a!==B.last&&!(a==='minions'&&G.en.filter(e=>e.st!=='dead').length>=5));
+  const opts=['spiral','lasers','slam'].filter(a=>a!==B.last);
   const a=pick(opts); B.last=a; B.atk=a; B.at=0; B.emit=0; B.ang=rand(0,TAU);
   const h=G.hero, m=G.m;
   if(a==='lasers'){

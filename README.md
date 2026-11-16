@@ -20,7 +20,7 @@ You are MUNCHBOT, a hungry little robot, and the Glitches are after you. It star
 | 2 | **MEAN STREETS** | The same maze rises into a top-down crime city. Grab all the cash to finish, answer ringing payphones for 3 jobs (a delivery run, a kill frenzy, surviving the heat), and dodge the glitch cop cars. The screen flashes red and blue as they close in. Collect 4 green tokens and your crew rolls in for 20 seconds and wrecks the cops for you. |
 | 3 | **HELL MAZE** | First person with chunky pixels and rusty corridors. Demons hunt you (2 shots each), and so does THE BRUTE, a three-eyed boss demon that takes 5 shots and keeps coming back. Your arm cannon is the only gun in the maze and dots are ammo. Eat every dot to get out. |
 | 4 | **JUNGLE '94** | A side-scrolling platformer in the spirit of 90s 16-bit games, built in real 3D. MUNCHBOT turns into a golden lion-bot with a mane: sunset jungle, ruins, waterfalls, pits, springy mushrooms and a moving log. Stomp the Glitches, double jump, and grab every gem (a counter shows how many are left) to open the gate at the end of the level. |
-| 💀 | **BOSS: THE KERNEL** | A giant spiked core with bullet spirals, row and column lasers, slams and minions. Eat a power core, then ram it five times. |
+| 💀 | **BOSS: THE KERNEL** | A giant spiked core with bullet spirals, row and column lasers and slams. Eat a power core, then ram it five times. |
 
 Phase 1 moves on by itself after 20 seconds. Phases 2 to 4 have no clock: you move on only when the map is cleared. Win and you can go again with **LOOP ×2**, faster every time.
 
