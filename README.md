@@ -4,7 +4,7 @@
 
 **A 1980 maze chase that turns into a crime city, a first-person shooter and a 16-bit jungle platformer.**
 
-[![Play now](https://img.shields.io/badge/▶_PLAY_NOW-pacman--gta.pages.dev-7dff4a?style=for-the-badge)](https://pacman-gta.pages.dev)
+[![Play now](https://img.shields.io/badge/▶_PLAY_NOW-crazy--pacman.pages.dev-7dff4a?style=for-the-badge)](https://crazy-pacman.pages.dev)
 
 <img src="docs/0-title.jpg" width="49%"> <img src="docs/1-1980.jpg" width="49%">
 
@@ -40,7 +40,7 @@ Phase 1 moves on by itself after 20 seconds. Phases 2 to 4 have no clock: you mo
 | Shoot (phase 3) | `Space` | Tap |
 | Mute | `M` | |
 
-**Secret level select:** type `222`, `333`, `444` or `555`, or tap the score 3 times quickly.
+**Secret level select:** type `222`, `333`, `444` or `555`. On a phone, tap the score 3 times quickly to skip to the next phase.
 
 ## Under the hood
 
