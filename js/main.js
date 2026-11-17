@@ -10,7 +10,7 @@ import {burst, clearDebris, clearMarkers, updDebris, updMarkers} from './engine/
 import {_cL, cam, camPose, camUpdate, render3} from './engine/camera.js';
 import {A3, burstAt} from './engine/actors.js';
 import {X} from './phases/extras.js';
-import {PL} from './phases/p4-jungle.js';
+import {PL} from './phases/p4-block-world.js';
 import {GR} from './phases/p5-land-grab.js';
 import {miniC} from './ui/minimap.js';
 import {banner, flash, hidePanel, hint, hud, setGlow, showPanel, updHearts} from './ui/hud.js';

@@ -7,7 +7,7 @@ import {cellAt, DIRS, DOOR, MAZE1, OPEN, parseMaze, PEN, stepActor, WALL, wdx, w
 import {addScore, mazeTick, spawnEnemy, startFright} from '../core/maze-game.js';
 import {M1CFG} from './p1-1980.js';
 import {_c, _m4, _o, _v, _v2, _v3, basisMat, castAll, envFrom, hemi, placeObj, S, scene, SUN, sun, ZERO} from '../engine/renderer.js';
-import {ANISO, both, cvTex, cvTex2, fbm, grain, hg, once, pxFill} from '../engine/textures.js';
+import {ANISO, both, cvTex, cvTex2, fbm, grain, hg, once, pxFill, worldUV} from '../engine/textures.js';
 import {eyeWGeo, pupGeo} from '../engine/models.js';
 import {cam, camPose} from '../engine/camera.js';
 import {glowSprite} from '../engine/environments.js';
@@ -137,26 +137,6 @@ export const acT=once(()=>cvTex2(256,256,(g,b,w,h)=>{ g.fillStyle='#b8bcc4'; g.f
   g.fillStyle='#5a5e66'; for(let i=0;i<4;i++){ g.save(); g.translate(w*.7,h*.5); g.rotate(i*PI/2+.4); g.beginPath(); g.ellipse(24,0,24,9,0,0,TAU); g.fill(); g.restore(); }
   grain(g,b,w,h,8,.2,2,3,.1);
 },false));
-// world-space UVs for instanced boxes: facades tile by world x/z + height, roofs by world x/z
-export function worldUV(mat,sx,sy,top=false){
-  mat.onBeforeCompile=sh=>{
-    sh.vertexShader=sh.vertexShader.replace('#include <uv_vertex>',`#include <uv_vertex>
-      { vec4 wq=modelMatrix*instanceMatrix*vec4(position,1.0); vec3 wn=normalize(mat3(modelMatrix*instanceMatrix)*normal);
-        vec2 wuv=${top?'wq.xz/vec2('+sx.toFixed(2)+','+sy.toFixed(2)+')':'vec2((abs(wn.x)>.5?wq.z*sign(wn.x):-wq.x*sign(wn.z))/'+sx.toFixed(2)+', wq.y/'+sy.toFixed(2)+')'};
-        #ifdef USE_MAP
-        vMapUv=wuv;
-        #endif
-        #ifdef USE_EMISSIVEMAP
-        vEmissiveMapUv=wuv;
-        #endif
-        #ifdef USE_BUMPMAP
-        vBumpMapUv=wuv;
-        #endif
-      }`);
-  };
-  mat.customProgramCacheKey=()=>'wuv'+sx+sy+top;
-  return mat;
-}
 
 
 // ================= PHASE 2: MEAN STREETS (top-down crime city) =================
