@@ -2,7 +2,7 @@
 
 # MUNCHBOT '80
 
-**A 1980 maze chase that turns into a crime city, a first-person shooter, a classic block-world platformer and a 3D land grab.**
+**A 1980 maze chase that turns into a crime city, a first-person shooter, a classic block-world platformer, a 3D land grab and a bomb maze.**
 
 [![Play now](https://img.shields.io/badge/▶_PLAY_NOW-crazy--pacman.pages.dev-7dff4a?style=for-the-badge)](https://crazy-pacman.pages.dev)
 
@@ -21,26 +21,29 @@ You are MUNCHBOT, a hungry little robot, and the Glitches are after you. It star
 | 3 | **HELL MAZE** | First person in rusty, bump-mapped HD corridors. Demons hunt you (2 shots each), and so does THE BRUTE, a three-eyed boss demon that takes 5 shots and keeps coming back. Your arm cannon is the only gun in the maze and dots are ammo. Eat every dot to get out. |
 | 4 | **BLOCK WORLD '85** | A side-scrolling platformer in the spirit of the classic 80s/90s block worlds, built in real 3D: blue sky, puffy clouds, round green hills, brick steps, golden blocks, trampolines and a moving platform. Stomp the Glitches, double jump, and grab every coin (a counter shows how many are left) to open the brick gate at the end of the level. |
 | 5 | **LAND GRAB** | Xonix meets Pac-Man, styled after AirXonix: a board floating on the ocean. Fly your hover craft off the green land to draw a line across the stone field, then close it: every pocket without a monster ball rises up as land and its pearls are eaten. Glossy balls bounce through the field and cut your line, and a green cube rolls along the land. Pink power gems turn them blue: eat them, or close a line around them to trap them for a big bonus. Claim 90% to win (95% on loop 2, 97% after that). |
+| 6 | **BOMB MAZE '85** | Bomberman meets Pac-Man: a grassy arena of stone pillars and brick blocks. Drop bombs to blast through the bricks (and the Glitches, and yourself if you are not careful). Bombs chain-react. The bricks hide gold coins and power-ups: FIRE (longer blasts), BOMB (one more bomb at a time) and CHOMP (a power diamond, eat the Glitches). Every coin lights a lamp on the stone gate. Find them all (5, then 6 on loop 2, then 7) and the gate opens. |
 
-Phase 1 moves on by itself after 20 seconds. Phases 2 to 5 have no clock: you move on only when the map is cleared (or claimed). Win and you can go again with **LOOP ×2**, faster every time.
+Phase 1 moves on by itself after 20 seconds. Phases 2 to 6 have no clock: you move on only when the map is cleared (or claimed, or the gate is open). Win and you can go again with **LOOP ×2**, faster every time.
 
 <div align="center">
 <img src="docs/2-mean-streets.jpg" width="49%"> <img src="docs/3-hell-maze.jpg" width="49%">
 <img src="docs/4-block-world.jpg" width="49%"> <img src="docs/5-land-grab.jpg" width="49%">
+<img src="docs/6-bomb-maze.jpg" width="49%">
 </div>
 
 ## Controls
 
 | | Keyboard | Phone |
 |---|---|---|
-| Steer (phases 1, 2, 5) | Arrows / `WASD` | Swipe |
+| Steer (phases 1, 2, 5, 6) | Arrows / `WASD` | Swipe |
 | Run / jump (phase 4) | `←` `→` / `Space` or `↑` (again in the air for a double jump) | On-screen ◀ ▶ JUMP buttons |
 | Walk (phase 3) | Hold `↑` / `W` | Hold a finger |
 | Turn / turn around (phase 3) | `←` `→` / `↓` | Swipe left / right / down |
 | Shoot (phase 3) | `Space` | Tap |
+| Drop a bomb (phase 6) | `Space` / `X` / `B` | Tap |
 | Mute | `M` | |
 
-**Secret level select:** type the phase number three times (`222`, `333`, `444`, `555`). On a phone, tap the score 3 times quickly to skip to the next phase.
+**Secret level select:** type the phase number three times (`222`, `333`, `444`, `555`, `666`). On a phone, tap the score 3 times quickly to skip to the next phase.
 
 ## Under the hood
 
