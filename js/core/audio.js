@@ -13,7 +13,7 @@ export function initAudio(){
   const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
   music.next=AC.currentTime+.1;
 }
-export function setMute(m){ GS.muted=m; if(master) master.gain.setTargetAtTime(m?0:.7,AC.currentTime,.02); $('mute').textContent='M · SOUND '+(m?'OFF':'ON')+' · v14'; }
+export function setMute(m){ GS.muted=m; if(master) master.gain.setTargetAtTime(m?0:.7,AC.currentTime,.02); $('mute').textContent='M · SOUND '+(m?'OFF':'ON')+' · v15'; }
 export function tone(o){
   if(!AC) return; const t=o.t??AC.currentTime, d=o.d??.1;
   const os=AC.createOscillator(), g=AC.createGain();
@@ -82,6 +82,7 @@ const SONGS={
   p3:mkSong({bpm:132,roots:[40,40,43,38],k:'x..xx...x..x..x.',s:'....x.......x..x',h:'x.x.x.x.x.x.x.x.',bass:['0','0','.','0','12','0','.','0','0','3','.','0','12','0','10','0'],bt:'sawtooth',blp:900,bv:.12,bl:.8,arp:[0,null,3,null,7,null,3,null],av:.025}),
   p4:mkSong({bpm:146,roots:[50,46,41,48],k:'x...x...x...x...',s:'....x.......x...',h:'xxxxxxxxxxxxxxxx',hv:.035,bass:['0','.','12','.','0','.','12','.','0','.','12','.','0','.','12','.'],bv:.11,bl:1.2,arp:[0,4,7,12,16,12,7,4,0,7,12,19,24,19,12,7],at:'triangle',av:.045,alp:4000}),
   boss:mkSong({bpm:158,roots:[40,41,40,43],k:'x.x.x.x.x.x.x.x.',kv:.4,s:'....x.......x.x.',h:'.x.x.x.x.x.x.x.x',bass:['0','0','12','0','1','0','12','0','0','0','12','0','3','0','1','0'],bv:.12,bl:.7,blp:1100,arp:[0,3,6,12,6,3],av:.03}),
+  p6:mkSong({bpm:150,roots:[48,53,55,48],k:'x...x...x...x...',s:'....x.......x...',h:'..x...x...x...x.',bass:['0','.','7','.','12','.','7','.','0','.','7','.','12','7','5','4'],bt:'square',blp:900,bv:.07,bl:.8,arp:[0,4,7,12,7,4,0,null,4,7,12,16,12,7,4,null],at:'square',av:.022,alp:2800}),
   calm:mkSong({bpm:90,roots:[48,45,41,43],bass:['0',null,null,null,'7',null,null,null,'12',null,null,null,'7',null,null,null],bt:'triangle',bv:.1,bl:3.5,arp:[0,null,7,null,12,null,16,null],at:'triangle',av:.03}),
 };
 export function setSong(n){ music.song=n?SONGS[n]:null; music.step=0; if(AC) music.next=AC.currentTime+.06; }
