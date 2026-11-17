@@ -19,6 +19,8 @@ import {endPhase, hurtHero, runSeq} from '../main.js';
 // Leave the safe land to draw a line through the glitch sea; close it to claim every pocket without a glitch.
 // Pac twist: power diamonds turn the glitches blue: eat them, or close a line around them to trap them.
 const GW=34, GH=24, LAND=1, SEA=0, TRAIL=2;
+// how much of the board must be claimed: loop 1, loop 2, loop 3 and after
+const CLAIM_GOAL=[.9,.95,.97];
 export const GR={};
 // ---------- AirXonix look: a grass slab (claimed land) over a sunken stone field, floating on the ocean ----------
 const LAND_H=.9; // height of the claimed slab
@@ -107,7 +109,7 @@ export function grabSetup(){
   W3.dotMesh=new THREE.InstancedMesh(pearlGeo,new THREE.MeshStandardMaterial({color:0xffd060,roughness:.15,metalness:.9,emissive:0x6a4000,emissiveIntensity:.6}),W*H); W3.dotMesh.castShadow=true; g.add(W3.dotMesh);
   W3.powMesh=new THREE.InstancedMesh(powGeo,new THREE.MeshPhysicalMaterial({color:0xff5ab8,roughness:.1,metalness:.3,clearcoat:1,emissive:0xff2a8a,emissiveIntensity:.8,flatShading:true}),24); W3.powMesh.castShadow=true; g.add(W3.powMesh);
   for(let i=0;i<W*H;i++){ W3.tiles.setMatrixAt(i,ZERO); W3.trail.setMatrixAt(i,ZERO); W3.dotMesh.setMatrixAt(i,ZERO); W3.tiles.setColorAt(i,_c.setRGB(1,1,1)); if(dot[i]===2) W3.powList.push(i); }
-  Object.assign(GR,{c,m,trail:[],drawing:false,cx:17,cy:0,dx:0,dy:0,p:0,lastLand:[17,0],anim:[],claimed:0,total:(W-4)*(H-4),target:.75,pct:0,powT:0,won:false,winT:0,combo:0,spd:7.6,bank:0});
+  Object.assign(GR,{c,m,trail:[],drawing:false,cx:17,cy:0,dx:0,dy:0,p:0,lastLand:[17,0],anim:[],claimed:0,total:(W-4)*(H-4),target:CLAIM_GOAL[Math.min(GS.loop,CLAIM_GOAL.length-1)],pct:0,powT:0,won:false,winT:0,combo:0,spd:7.6,bank:0});
   for(let i=0;i<W*H;i++){ if(c[i]===LAND) setTile(i,1); if(dot[i]===1) setDot(i,true); }
   W3.tiles.instanceMatrix.needsUpdate=true; W3.tiles.instanceColor.needsUpdate=true; W3.dotMesh.instanceMatrix.needsUpdate=true; W3.trail.instanceMatrix.needsUpdate=true;
   // game state shim used by the shared HUD / hearts / camera code
@@ -272,7 +274,7 @@ export function drawGrabMini(){
   for(const e of GS.G.en){ if(e.st==='dead') continue; g.fillStyle=e.fr?((t*6|0)%2?'#fff':'#3a8aff'):e.col; g.fillRect(e.x*cs-1,e.y*cs-1,cs+2,cs+2); }
   const h=GS.G.hero; g.fillStyle=(t*6|0)%2?'#29f0ff':'#ffffff'; g.fillRect(h.x*cs-1,h.y*cs-1,cs+2,cs+2);
 }
-export function grabHint(){ return TOUCH?'SWIPE TO STEER · LEAVE THE GREEN LAND TO DRAW A LINE · CLOSE IT TO CLAIM · CLAIM 75%':'ARROWS STEER · LEAVE THE GREEN LAND TO DRAW A LINE · CLOSE IT TO CLAIM · CLAIM 75%'; }
+export function grabHint(){ return TOUCH?'SWIPE TO STEER · LEAVE THE GREEN LAND TO DRAW A LINE · CLOSE IT TO CLAIM · CLAIM '+Math.round(GR.target*100)+'%':'ARROWS STEER · LEAVE THE GREEN LAND TO DRAW A LINE · CLOSE IT TO CLAIM · CLAIM '+Math.round(GR.target*100)+'%'; }
 export const grabCamX=()=>lerp((GW-1)/2,GS.G.hero.x,.55), grabCamY=()=>lerp((GH-1)/2,GS.G.hero.y,.5);
 // ---------- phase object ----------
 const ORIGIN=new THREE.Vector3();
