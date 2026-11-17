@@ -40,17 +40,40 @@ Phase 1 moves on by itself after 20 seconds. Phases 2 to 5 have no clock: you mo
 | Shoot (phase 3) | `Space` | Tap |
 | Mute | `M` | |
 
-**Secret level select:** type `222`, `333`, `444` or `555`. On a phone, tap the score 3 times quickly to skip to the next phase.
+**Secret level select:** type the phase number three times (`222`, `333`, `444`, `555`). On a phone, tap the score 3 times quickly to skip to the next phase.
 
 ## Under the hood
 
-- One single `index.html`, built from small source files. No image files: the maze, the city, the textures, the demons and the HUD are all drawn in code.
-- 3D with [three.js](https://threejs.org): phase 1 stays a crisp 1980 arcade screen, while phases 2 to 5 render in HD with soft sun shadows, multisampled anti-aliasing, bloom, sky-based reflections on paint, glass and metal, and high-res procedural textures with bump maps (asphalt, facades, rusty bricks, mossy ruins, palm fronds, neon maze tiles).
+- Plain HTML, CSS and JavaScript modules, no build step and no image files: the mazes, the city, the textures, the demons and the HUD are all drawn in code.
+- 3D with [three.js](https://threejs.org): phase 1 stays a crisp 1980 arcade screen, while the 3D phases render in HD with soft sun shadows, multisampled anti-aliasing, bloom, sky-based reflections on paint, glass and metal, and high-res procedural textures with bump maps (asphalt, facades, rusty bricks, mossy ruins, palm fronds, neon maze tiles).
 - A built-in quality governor steps the resolution and then the shadows down if a device can't hold the frame rate.
 - All sound effects and music are generated live with the Web Audio API.
 - Works on desktop and mobile, in landscape and portrait.
 
-Run it locally by opening `index.html` in a browser, or with `python3 -m http.server`.
+Run it locally with any static server from the repo folder (ES modules don't load from `file://`):
+
+```
+python3 -m http.server
+```
+
+then open http://localhost:8000.
+
+## Project structure
+
+```
+index.html            page markup only
+css/style.css         all styles
+js/main.js            game flow: start / end phases, death, victory, main loop, keys
+js/core/              utils, shared state (GS), input, audio + music, maze logic, the shared maze game
+js/engine/            renderer, lights + sun shadows, quality governor, procedural textures,
+                      maze world builder, models, particles, camera, 3D actors, skies
+js/ui/                HUD and minimap
+js/phases/            one file per phase + index.js (the phase list) + _template.js
+```
+
+A new phase is a new file in `js/phases/` plus one line in `js/phases/index.js`. The phase object
+(start, tick, sync, outro, HUD, minimap...) is documented in [js/phases/README.md](js/phases/README.md),
+and [_template.js](js/phases/_template.js) is a complete small phase to copy.
 
 ## More games in the series
 
