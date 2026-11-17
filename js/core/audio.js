@@ -13,7 +13,7 @@ export function initAudio(){
   const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
   music.next=AC.currentTime+.1;
 }
-export function setMute(m){ GS.muted=m; if(master) master.gain.setTargetAtTime(m?0:.7,AC.currentTime,.02); $('mute').textContent='M · SOUND '+(m?'OFF':'ON')+' · v13'; }
+export function setMute(m){ GS.muted=m; if(master) master.gain.setTargetAtTime(m?0:.7,AC.currentTime,.02); $('mute').textContent='M · SOUND '+(m?'OFF':'ON')+' · v14'; }
 export function tone(o){
   if(!AC) return; const t=o.t??AC.currentTime, d=o.d??.1;
   const os=AC.createOscillator(), g=AC.createGain();

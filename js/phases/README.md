@@ -22,7 +22,7 @@ the next phase in the list, or the victory lap after the last one.
 | `name` | ✓ | shown in the HUD and on banners, e.g. `'LAND GRAB'` |
 | `color` | ✓ | glow colour of the HUD for this phase |
 | `song` | | key in `SONGS` (`core/audio.js`) |
-| `ui` | | screen setup: `{cam:'follow'\|'top'\|'side'\|'fps', sun:<shadow half-size, 0 = no sun shadows>, bloom:[strength,threshold], fps:true (gun + status bar), pad:true (◀ ▶ JUMP on phones), wanted:true}` |
+| `ui` | | screen setup: `{cam:'follow'\|'top'\|'side'\|'fps', sun:<shadow half-size, 0 = no sun shadows>, bloom:[strength,threshold], fps:true (gun + status bar), pad:true (◀ ▶ JUMP on phones), wanted:true, pix:<max pixel ratio>, msaa:<max MSAA samples> (lower these for heavy phases)}` |
 | `start(opt)` | ✓ | build the world (`GS.W3`) and the game state (`GS.G`), set `GS.mode='seq'` and play an intro with `runSeq()`, then set `GS.mode='play'` |
 | `tick(dt)` | ✓ | gameplay update while `GS.mode==='play'`; call `endPhase()` when the phase is won |
 | `sync(dt)` | ✓ | per frame: put the 3D objects where the game state says |

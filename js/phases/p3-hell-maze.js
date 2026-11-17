@@ -261,11 +261,17 @@ export function fpsSyncEnemies(dt){
 // ---------- weapon + status bar overlays ----------
 const gunC=$('gun'), gunX=gunC.getContext('2d'), sbC=$('sbar'), sbX=sbC.getContext('2d');
 // HD arm cannon (640x400 canvas, drawn in 160x100 units at 4x with shading and glow)
+// perf: the arm is only repainted when its look changes (power on/off, muzzle flash);
+// walking bob is a cheap CSS transform instead of a full canvas redraw every frame
+let gunKey='';
 function drawGun(){
   const g=gunX, h=GS.G.hero, moving=h.dx||h.dy, b=cam.bobT;
-  g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,640,400); g.setTransform(4,0,0,4,0,0);
   const bx=moving?Math.sin(b*.5)*6:0, by=(moving?Math.abs(Math.cos(b*.5))*5:0)+(X.flashT>0?4:0);
-  const cx=80+bx, top=46+by, coil=GS.G.fright>0?'#ff6a3a':'#29f0ff';
+  gunC.style.transform=`translate(${(-50+bx/1.6).toFixed(2)}%,${by.toFixed(2)}%)`;
+  const coil=GS.G.fright>0?'#ff6a3a':'#29f0ff', key=coil+(X.flashT>0?'F'+(b*4|0):'');
+  if(key===gunKey) return; gunKey=key;
+  g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,640,400); g.setTransform(4,0,0,4,0,0);
+  const cx=80, top=46;
   if(X.flashT>0){ const fg=g.createRadialGradient(cx,top-6,0,cx,top-6,24); fg.addColorStop(0,'rgba(255,255,255,1)'); fg.addColorStop(.25,'rgba(255,240,160,.95)'); fg.addColorStop(.6,'rgba(255,140,40,.55)'); fg.addColorStop(1,'rgba(255,80,0,0)');
     g.fillStyle=fg; g.beginPath(); for(let k=0;k<16;k++){ const a=k/16*TAU+b, r=k%2?8:24; g.lineTo(cx+Math.cos(a)*r,top-6+Math.sin(a)*r*.8); } g.closePath(); g.fill(); }
   // forearm
@@ -296,8 +302,13 @@ const sbBG=once(()=>{ const cv=document.createElement('canvas'); cv.width=1280; 
   pxFill(g,1280,128,(x,y)=>{ const n=fbm(x/1280*32,y/128*4,4,3)*.6+fbm(x/1280*256,y/128*2,2,2)*.4; const v=58+n*34+(R()-.5)*10; return [v,v,v+3]; });
   const gr=g.createLinearGradient(0,0,0,128); gr.addColorStop(0,'rgba(255,255,255,.18)'); gr.addColorStop(.08,'rgba(255,255,255,0)'); gr.addColorStop(.9,'rgba(0,0,0,0)'); gr.addColorStop(1,'rgba(0,0,0,.35)'); g.fillStyle=gr; g.fillRect(0,0,1280,128);
   return cv; });
+let sbKey='';
 function drawSbar(){
   const g=sbX, W=320, H=32;
+  X.faceT-=1/60; if(X.faceT<=0){ X.faceT=rand(.6,1.6); X.lookDir=pick([-1,0,1]); }
+  // perf: only repaint the status bar when something on it changed
+  const key=[X.ammo,GS.G.hearts,X.kills,GS.G.fright>0?Math.ceil(GS.G.fright):'-',GS.G.small,GS.G.inv>0,X.lookDir].join();
+  if(key===sbKey) return false; sbKey=key;
   g.setTransform(1,0,0,1,0,0); g.drawImage(sbBG(),0,0); g.setTransform(4,0,0,4,0,0);
   const box=(x,w,label)=>{ g.fillStyle='rgba(0,0,0,.28)'; g.beginPath(); g.roundRect(x+1.5,1.5,w-3,H-3,1.5); g.fill();
     g.strokeStyle='rgba(0,0,0,.6)'; g.lineWidth=.5; g.beginPath(); g.moveTo(x+1.5,H-1.5); g.lineTo(x+1.5,1.5); g.lineTo(x+w-1.5,1.5); g.stroke();
@@ -314,7 +325,6 @@ function drawSbar(){
   let gr=g.createLinearGradient(0,fy+1,0,fy+21); gr.addColorStop(0,hurt?'#ff8a70':'#a8ff7a'); gr.addColorStop(.5,hurt?'#c84a3a':'#5fd83a'); gr.addColorStop(1,hurt?'#7a2018':'#2a8a1a');
   g.fillStyle=gr; g.beginPath(); g.roundRect(fx+2,fy+2,24,19,4); g.fill();
   gr=g.createLinearGradient(0,fy+5,0,fy+13); gr.addColorStop(0,hurt?'#600':'#0a3a14'); gr.addColorStop(1,hurt?'#200':'#031408'); g.fillStyle=gr; g.beginPath(); g.roundRect(fx+4,fy+5.5,20,7,1.5); g.fill();
-  X.faceT-=1/60; if(X.faceT<=0){ X.faceT=rand(.6,1.6); X.lookDir=pick([-1,0,1]); }
   const ex=hurt?0:X.lookDir;
   if(hurt){ g.strokeStyle='#fff'; g.lineWidth=.7; for(const ox of [8,19]){ g.beginPath(); g.moveTo(fx+ox-1.4,fy+7.4); g.lineTo(fx+ox+1.4,fy+10.4); g.moveTo(fx+ox+1.4,fy+7.4); g.lineTo(fx+ox-1.4,fy+10.4); g.stroke(); } }
   else { g.save(); g.shadowColor=pw?'#29f0ff':'#bfffff'; g.shadowBlur=3; g.fillStyle=pw?'#29f0ff':'#eaffff'; g.beginPath(); g.roundRect(fx+7+ex,fy+7,4,3,1); g.roundRect(fx+17+ex,fy+7,4,3,1); g.fill(); g.restore(); }
@@ -324,10 +334,11 @@ function drawSbar(){
 }
 export function fpsOverlays(){
   if(GS.phase!==3||!GS.G||!X.fb) return;
-  drawGun(); drawSbar();
-  const sh=sbC.getBoundingClientRect().height; gunC.style.bottom=(sh-2)+'px'; document.body.style.setProperty('--sbh',sh+'px');
+  drawGun(); const ch=drawSbar()!==false;
+  if(ch||++sbN>30){ sbN=0; const sh=sbC.getBoundingClientRect().height; if(sh!==sbH){ sbH=sh; gunC.style.bottom=(sh-2)+'px'; document.body.style.setProperty('--sbh',sh+'px'); } }
 }
-export function fpsClear(){ for(const f of X.fb||[]){ f.spr.removeFromParent(); } X.fb=null; }
+let sbN=0, sbH=-1;
+export function fpsClear(){ gunKey=sbKey=''; sbH=-1; for(const f of X.fb||[]){ f.spr.removeFromParent(); } X.fb=null; }
 // ---------- phase object ----------
 // a lattice maze with solid outer walls and 4 power cells
 function hellMaze(){
@@ -359,7 +370,7 @@ const FPS_STYLE={
 const P3={
   name:'HELL MAZE', color:'#ff5a2a', song:'p3', world:FPS_STYLE, cfg:P3F, hearts:4,
   deathText:'Torn apart in the hell maze.',
-  ui:{cam:'fps', fps:true, bloom:[.3,.32], sun:0},
+  ui:{cam:'fps', fps:true, bloom:[.3,.32], sun:0, pix:1.5, msaa:2},
   hint:()=>TOUCH?'HOLD TO WALK · SWIPE ← → TO TURN · SWIPE ↓ TURN AROUND · TAP TO SHOOT':'HOLD ↑ TO WALK · ← → TURN · ↓ TURN AROUND · SPACE SHOOTS',
   buildEnv:buildFpsEnv, setup:fpsSetup, extraTick:fpsTick, clear:fpsClear,
   hooks:()=>({

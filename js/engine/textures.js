@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {clamp, mulberry} from '../core/utils.js';
 // ---------- textures ----------
-export const ANISO=16; // three.js clamps this to what the GPU supports
+export const ANISO=8; // three.js clamps this to what the GPU supports
 export function cvTex(w,h,fn,rep){ const cv=document.createElement('canvas'); cv.width=w; cv.height=h; fn(cv.getContext('2d'),w,h); const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace; if(rep){ t.wrapS=t.wrapT=THREE.RepeatWrapping; } t.anisotropy=ANISO; return t; }
 // ---------- HD texture toolkit (phases 2-5) ----------
 export const once=f=>{ let v; return ()=>v||(v=f()); };

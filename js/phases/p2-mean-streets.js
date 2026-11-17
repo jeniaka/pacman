@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
+import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {GS} from '../core/state.js';
 import {$, clamp, ease, easeOut, irand, lerp, mulberry, PI, pick, TAU, TOUCH} from '../core/utils.js';
 import {SFX, now, tone} from '../core/audio.js';
@@ -147,7 +148,7 @@ const CARG=once(()=>({
   cab:new RoundedBoxGeometry(.86,.34,.98,4,.13), roof:new RoundedBoxGeometry(.78,.05,.62,3,.025),
   hood:new RoundedBoxGeometry(.9,.03,.52,2,.012), trunk:new RoundedBoxGeometry(.9,.03,.32,2,.012),
   lamp:new RoundedBoxGeometry(.24,.09,.05,2,.02), bumper:new RoundedBoxGeometry(1.02,.11,.1,2,.04),
-  tire:new THREE.CylinderGeometry(.19,.19,.15,24), rim:new THREE.CylinderGeometry(.115,.115,.16,16), hub:new THREE.CylinderGeometry(.04,.04,.17,8),
+  tire:new THREE.CylinderGeometry(.19,.19,.15,16), rim:new THREE.CylinderGeometry(.115,.115,.16,12), hub:new THREE.CylinderGeometry(.04,.04,.17,8),
   mirror:new RoundedBoxGeometry(.1,.06,.06,2,.02), grille:new THREE.BoxGeometry(.5,.07,.02),
   bar:new RoundedBoxGeometry(.66,.06,.2,2,.025), beacon:new RoundedBoxGeometry(.27,.09,.17,2,.035),
 }));
@@ -161,23 +162,32 @@ const CARM=once(()=>({
   tl:new THREE.MeshBasicMaterial({color:new THREE.Color(1.8,.08,.08),toneMapped:false}),
   black:new THREE.MeshPhysicalMaterial({color:0x0c0c10,roughness:.3,metalness:.4,clearcoat:1,clearcoatRoughness:.08}),
 }));
+// perf: every part that shares a material is merged into one mesh, so a car is ~8 draw calls
+// instead of ~25 (and only the big parts cast shadows)
+const CARP=once(()=>{
+  const G2=CARG(), W4=[[-.5,.58],[.5,.58],[-.5,-.58],[.5,-.58]];
+  const mg=list=>mergeGeometries(list.map(([geo,x,y,z,rz])=>{ const g=geo.index?geo.toNonIndexed():geo.clone(); if(rz) g.rotateZ(rz); g.translate(x,y,z); return g; }));
+  const wheels=(geo,off)=>W4.map(([x,z])=>[geo,x+(off?Math.sign(x)*.005:0),.2,z,PI/2]);
+  const trim=[[G2.skirt,0,.26,0],[G2.bumper,0,.3,.93],[G2.bumper,0,.3,-.93],...wheels(G2.hub,true)];
+  return {
+    paint:mg([[G2.body,0,.4,0],[G2.roof,0,.885,-.12],[G2.mirror,-.33*1.55,.62,.3],[G2.mirror,.33*1.55,.62,.3]]),
+    trim:mg(trim), copTrim:mg([...trim,[G2.bar,0,.92,-.12]]),
+    glass:mg([[G2.cab,0,.7,-.12]]), chrome:mg([[G2.grille,0,.42,.915]]),
+    hl:mg([[G2.lamp,-.33,.44,.9],[G2.lamp,.33,.44,.9]]), tl:mg([[G2.lamp,-.33,.44,-.9],[G2.lamp,.33,.44,-.9]]),
+    tire:mg(wheels(G2.tire)), rim:mg(wheels(G2.rim,true)),
+    black:mg([[G2.hood,0,.585,.6],[G2.trunk,0,.585,-.72]]),
+  };
+});
 export function makeCar(col,cop){
-  const G2=CARG(), M=CARM();
+  const G2=CARG(), M=CARM(), P=CARP();
   const g=new THREE.Group(), body=new THREE.Group(); g.add(body);
   const paint=new THREE.MeshPhysicalMaterial({color:col,roughness:.32,metalness:.55,clearcoat:1,clearcoatRoughness:.06,emissive:col,emissiveIntensity:.05});
-  const add=(geo,mat,x,y,z,o)=>{ const ms=new THREE.Mesh(geo,mat); ms.position.set(x,y,z); if(o) o(ms); body.add(ms); return ms; };
-  add(G2.body,paint,0,.4,0);
-  add(G2.skirt,M.trim,0,.26,0);
-  add(G2.cab,M.glass,0,.7,-.12);
-  add(G2.roof,paint,0,.885,-.12);
-  for(const z of [.93,-.93]) add(G2.bumper,M.trim,0,.3,z);
-  add(G2.grille,M.chrome,0,.42,.915);
-  for(const sx of [-.33,.33]){ add(G2.lamp,M.hl,sx,.44,.9); add(G2.lamp,M.tl,sx,.44,-.9); add(G2.mirror,paint,sx*1.55,.62,.3); }
-  for(const [x,z] of [[-.5,.58],[.5,.58],[-.5,-.58],[.5,-.58]]){ for(const [geo,mat] of [[G2.tire,M.tire],[G2.rim,M.rim],[G2.hub,M.trim]]){ const w=add(geo,mat,x+(geo===G2.tire?0:Math.sign(x)*.005),.2,z); w.rotation.z=PI/2; } }
+  const add=(geo,mat,x,y,z,shadow)=>{ const ms=new THREE.Mesh(geo,mat); ms.position.set(x,y,z); ms.castShadow=!!shadow; body.add(ms); return ms; };
+  add(P.paint,paint,0,0,0,1); add(cop?P.copTrim:P.trim,M.trim,0,0,0,1); add(P.glass,M.glass,0,0,0,1); add(P.tire,M.tire,0,0,0,1);
+  add(P.rim,M.rim,0,0,0); add(P.chrome,M.chrome,0,0,0); add(P.hl,M.hl,0,0,0); add(P.tl,M.tl,0,0,0);
   const ud={body,core:body,mat:paint,col:new THREE.Color(col),style:'car'};
   if(cop){
-    add(G2.hood,M.black,0,.585,.6); add(G2.trunk,M.black,0,.585,-.72);
-    add(G2.bar,M.trim,0,.92,-.12);
+    add(P.black,M.black,0,0,0,1);
     const lr=add(G2.beacon,new THREE.MeshBasicMaterial({color:new THREE.Color(3,.15,.15),toneMapped:false}),-.18,.97,-.12);
     const lb=add(G2.beacon,new THREE.MeshBasicMaterial({color:new THREE.Color(.15,.5,3),toneMapped:false}),.18,.97,-.12);
     const eye=new THREE.Group(); eye.position.set(0,.66,.62); eye.scale.setScalar(.7); body.add(eye);
@@ -185,7 +195,6 @@ export function makeCar(col,cop){
     const pup=new THREE.Mesh(pupGeo,new THREE.MeshStandardMaterial({color:0x050505,roughness:.05})); pup.position.z=.24; eye.add(pup);
     Object.assign(ud,{lr,lb,eye,pup});
   }
-  castAll(g);
   g.userData=ud; return g;
 }
 const harbourT=once(()=>cvTex(512,512,(g,w,h)=>{ pxFill(g,w,h,(x,y)=>{ const n=fbm(x/w*8,y/h*8,8,5), n2=fbm(x/w*4+5,y/h*16,4,3); const v=n*.65+n2*.35; return [14+v*50,52+v*80,76+v*100]; });
@@ -202,8 +211,9 @@ export function buildGtaEnv(m){
   // mooring posts along the quay
   const postM=new THREE.MeshStandardMaterial({color:0x2a2c30,roughness:.5,metalness:.6}), postG=new THREE.CylinderGeometry(.14,.18,.5,14);
   const hw=(m.W*S+3)/2, hh=(m.H*S+3)/2;
-  for(let x=-hw+2;x<hw;x+=5) for(const z of [-hh+.25,hh-.25]){ const p=new THREE.Mesh(postG,postM); p.position.set(x,.2,z); p.castShadow=true; bg.add(p); }
-  for(let z=-hh+2;z<hh;z+=5) for(const x of [-hw+.25,hw-.25]){ const p=new THREE.Mesh(postG,postM); p.position.set(x,.2,z); p.castShadow=true; bg.add(p); }
+  const pp=[]; for(let x=-hw+2;x<hw;x+=5) for(const z of [-hh+.25,hh-.25]) pp.push([x,z]);
+  for(let z=-hh+2;z<hh;z+=5) for(const x of [-hw+.25,hw-.25]) pp.push([x,z]);
+  const posts=new THREE.InstancedMesh(postG,postM,pp.length); pp.forEach(([x,z],i)=>posts.setMatrixAt(i,_m4.makeTranslation(x,.2,z))); posts.castShadow=true; bg.add(posts);
   envFrom('#34507a','#7a8696','#18191c',[['#c8b8a0',-30,40,20,5]]);
   hemi.color.set(0xd0dcff); hemi.groundColor.set(0x403830); hemi.intensity=.34; sun.color.set(0xffe2c0); sun.intensity=2.5; sun.position.set(-36,40,22); SUN.dir.set(-36,40,22).normalize();
 }
@@ -424,7 +434,7 @@ const GTA_STYLE={
 const P2={
   name:'MEAN STREETS', color:'#ffd04a', song:'p2', world:GTA_STYLE, cfg:P2G,
   deathTitle:'WASTED', deathText:'The glitch cops got you.', powerName:'FRENZY',
-  ui:{cam:'top', wanted:true, bloom:[.42,.78], sun:30},
+  ui:{cam:'top', wanted:true, bloom:[.42,.78], sun:30, pix:1.5, msaa:2},
   hint:()=>'GRAB ALL THE CASH TO FINISH · 4 GREEN TOKENS CALL YOUR CREW · PAYPHONES = JOBS',
   buildEnv:buildGtaEnv, setup:gtaSetup, extraTick:gtaTick, clear:gtaClear,
   hooks:()=>({
