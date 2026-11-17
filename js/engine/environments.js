@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import {GS} from '../core/state.js';
-import {rand} from '../core/utils.js';
+import {clamp, rand} from '../core/utils.js';
 import {_c, _v, hemi, scene, sun} from './renderer.js';
-import {cvTex, glowTex} from './textures.js';
+import {cvTex, fbm, glowTex, once, pxFill} from './textures.js';
 // ================= ENVIRONMENTS =================
 export function skyDome(top,mid,bot){
   const tex=cvTex(4,256,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,0,h); gr.addColorStop(0,top); gr.addColorStop(.55,mid); gr.addColorStop(1,bot); g.fillStyle=gr; g.fillRect(0,0,w,h); });
@@ -23,3 +23,6 @@ export function buildSpaceEnv(){
   const ring=new THREE.Mesh(new THREE.RingGeometry(80,120,64),new THREE.MeshBasicMaterial({color:0xc08aff,transparent:true,opacity:.25,side:THREE.DoubleSide})); ring.position.copy(pl.position); ring.rotation.x=1.2; bg.add(ring);
   hemi.color.set(0xb0a0ff); hemi.groundColor.set(0x301050); hemi.intensity=.9; sun.color.set(0xffffff); sun.intensity=1;
 }
+// soft cloud puff (alpha), white on top and a touch darker underneath; tint it with the sprite colour
+export const cloudTex=once(()=>cvTex(256,128,(g,w,h)=>{ pxFill(g,w,h,(x,y)=>{ const dx=(x-w/2)/(w/2), dy=(y-h*.62)/(h*.42); const m=clamp(1-(dx*dx+dy*dy),0,1); const n=fbm(x/w*8,y/h*4,8,5);
+  const a=clamp((n*1.6-.55)*m*2.2,0,1), lit=clamp(1.08-(y/h)*.45,0,1); return [255*lit,255*lit,255*Math.min(1,lit+.04),a*255]; }); }));

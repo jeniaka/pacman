@@ -36,3 +36,23 @@ export function both(g,b,col,hcol,fn){ g.fillStyle=col; fn(g); if(b&&hcol!=null)
 export const hg=v=>{ v=clamp(Math.round(v),0,255); return `rgb(${v},${v},${v})`; };
 export const glowTex=cvTex(64,64,(g,w,h)=>{ const gr=g.createRadialGradient(32,32,0,32,32,32); gr.addColorStop(0,'rgba(255,255,255,1)'); gr.addColorStop(.3,'rgba(255,255,255,.45)'); gr.addColorStop(1,'rgba(255,255,255,0)'); g.fillStyle=gr; g.fillRect(0,0,w,h); });
 export function gridTex(bg,line,glow){ return cvTex(128,128,(g,w,h)=>{ g.fillStyle=bg; g.fillRect(0,0,w,h); g.strokeStyle=glow; g.lineWidth=6; g.globalAlpha=.25; g.strokeRect(0,0,w,h); g.globalAlpha=1; g.strokeStyle=line; g.lineWidth=2; g.strokeRect(0,0,w,h); },true); }
+// world-space UVs for instanced boxes: facades tile by world x/z + height, roofs by world x/z
+export function worldUV(mat,sx,sy,top=false){
+  mat.onBeforeCompile=sh=>{
+    sh.vertexShader=sh.vertexShader.replace('#include <uv_vertex>',`#include <uv_vertex>
+      { vec4 wq=modelMatrix*instanceMatrix*vec4(position,1.0); vec3 wn=normalize(mat3(modelMatrix*instanceMatrix)*normal);
+        vec2 wuv=${top?'wq.xz/vec2('+sx.toFixed(2)+','+sy.toFixed(2)+')':'vec2((abs(wn.x)>.5?wq.z*sign(wn.x):-wq.x*sign(wn.z))/'+sx.toFixed(2)+', wq.y/'+sy.toFixed(2)+')'};
+        #ifdef USE_MAP
+        vMapUv=wuv;
+        #endif
+        #ifdef USE_EMISSIVEMAP
+        vEmissiveMapUv=wuv;
+        #endif
+        #ifdef USE_BUMPMAP
+        vBumpMapUv=wuv;
+        #endif
+      }`);
+  };
+  mat.customProgramCacheKey=()=>'wuv'+sx+sy+top;
+  return mat;
+}

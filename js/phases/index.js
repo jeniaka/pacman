@@ -4,7 +4,7 @@
 import p1 from './p1-1980.js';
 import p2 from './p2-mean-streets.js';
 import p3 from './p3-hell-maze.js';
-import p4 from './p4-jungle.js';
+import p4 from './p4-block-world.js';
 import p5 from './p5-land-grab.js';
 let list=null;
 // built lazily so phase modules can import main.js without an import-order problem

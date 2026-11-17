@@ -2,7 +2,7 @@
 
 # MUNCHBOT '80
 
-**A 1980 maze chase that turns into a crime city, a first-person shooter, a 16-bit jungle platformer and a neon land grab.**
+**A 1980 maze chase that turns into a crime city, a first-person shooter, a classic block-world platformer and a 3D land grab.**
 
 [![Play now](https://img.shields.io/badge/▶_PLAY_NOW-crazy--pacman.pages.dev-7dff4a?style=for-the-badge)](https://crazy-pacman.pages.dev)
 
@@ -19,14 +19,14 @@ You are MUNCHBOT, a hungry little robot, and the Glitches are after you. It star
 | 1 | **1980** | A classic 2D maze: eat the dots, grab the power diamonds and eat the Glitches back. 20 seconds, then OVERCLOCK. |
 | 2 | **MEAN STREETS** | The same maze rises into a top-down crime city. Grab all the cash to finish, answer ringing payphones for 3 jobs (a delivery run, a kill frenzy, surviving the heat), and dodge the glitch cop cars. The screen flashes red and blue as they close in. Collect 4 green tokens and your crew rolls in for 20 seconds and wrecks the cops for you. |
 | 3 | **HELL MAZE** | First person in rusty, bump-mapped HD corridors. Demons hunt you (2 shots each), and so does THE BRUTE, a three-eyed boss demon that takes 5 shots and keeps coming back. Your arm cannon is the only gun in the maze and dots are ammo. Eat every dot to get out. |
-| 4 | **JUNGLE '94** | A side-scrolling platformer in the spirit of 90s 16-bit games, built in real 3D. MUNCHBOT turns into a golden lion-bot with a mane: sunset jungle, ruins, waterfalls, pits, springy mushrooms and a moving log. Stomp the Glitches, double jump, and grab every gem (a counter shows how many are left) to open the gate at the end of the level. |
-| 5 | **LAND GRAB** | Xonix meets Pac-Man. Leave the safe neon land to draw a line across the glitch sea, then close it: every pocket without a glitch rises up as land and its dots are eaten. Glitches bounce through the sea and cut your line, and a land glitch patrols the safe zone. Power diamonds turn them blue: eat them, or close a line around them to trap them for a big bonus. Claim 75% of the grid to win. |
+| 4 | **BLOCK WORLD '85** | A side-scrolling platformer in the spirit of the classic 80s/90s block worlds, built in real 3D: blue sky, puffy clouds, round green hills, brick steps, golden blocks, trampolines and a moving platform. Stomp the Glitches, double jump, and grab every coin (a counter shows how many are left) to open the brick gate at the end of the level. |
+| 5 | **LAND GRAB** | Xonix meets Pac-Man, styled after AirXonix: a board floating on the ocean. Fly your hover craft off the green land to draw a line across the stone field, then close it: every pocket without a monster ball rises up as land and its pearls are eaten. Glossy balls bounce through the field and cut your line, and a green cube rolls along the land. Pink power gems turn them blue: eat them, or close a line around them to trap them for a big bonus. Claim 75% to win. |
 
 Phase 1 moves on by itself after 20 seconds. Phases 2 to 5 have no clock: you move on only when the map is cleared (or claimed). Win and you can go again with **LOOP ×2**, faster every time.
 
 <div align="center">
 <img src="docs/2-mean-streets.jpg" width="49%"> <img src="docs/3-hell-maze.jpg" width="49%">
-<img src="docs/4-jungle-94.jpg" width="49%"> <img src="docs/5-land-grab.jpg" width="49%">
+<img src="docs/4-block-world.jpg" width="49%"> <img src="docs/5-land-grab.jpg" width="49%">
 </div>
 
 ## Controls
