@@ -1,6 +1,7 @@
 // ================= PHASE 6: BOMB MAZE '85 (Bomberman meets MUNCHBOT) =================
 // A grid arena: stone pillars that never break, brick blocks that do. Drop bombs to blast a way
-// through, blow up the glitches and dig out the hidden coins. Every coin lights a lamp on the gate;
+// through, blow up the glitches and dig out the coins (coin bricks show a gold coin on their faces).
+// Every coin lights a lamp on the gate;
 // when all of them are lit the gate opens. Some bricks also hide FIRE (longer blasts),
 // BOMB (one more bomb at a time) and CHOMP (a power diamond: eat the glitches).
 import * as THREE from 'three';
@@ -24,12 +25,12 @@ const HERO=[1,13], GATE=[9,1];
 const SPAWNS=[[17,1],[17,13],[9,7],[1,1]];
 const FUSE=2.3, FIRE_T=.6, HARD_H=1.15, RIM_H=1.5, SOFT_H=1.0;
 const IT={COIN:1,FIRE:2,BOMB:3,CHOMP:4};
-const COIN_GOAL=[5,6,7];                     // coins to find: loop 1, loop 2, loop 3 and after
+const COIN_GOAL=3;                           // coins to find to open the gate
 // B = everything this phase keeps besides the shared maze game (GS.G)
 const B={};
 
 // ---------- the arena ----------
-// border and every even/even cell are stone; ~55% of the rest are bricks, never next to a start
+// border and every even/even cell are stone; ~35% of the rest are bricks, never next to a start
 function genArena(seed){
   const R=mulberry(seed), rows=[], soft=new Uint8Array(GW*GH), item=new Uint8Array(GW*GH);
   const near=(x,y,[ax,ay],d)=>Math.abs(x-ax)+Math.abs(y-ay)<=d;
@@ -38,14 +39,14 @@ function genArena(seed){
     for(let x=0;x<GW;x++){
       if(x===0||y===0||x===GW-1||y===GH-1||(x%2===0&&y%2===0)){ s+='#'; continue; }
       const i=y*GW+x;
-      if(!keep(x,y)&&R()<.55) soft[i]=1;
+      if(!keep(x,y)&&R()<.35) soft[i]=1;
       s+=(x===HERO[0]&&y===HERO[1])||(x===GATE[0]&&y===GATE[1])?' ':'.';
     }
     rows.push(s); }
   // hide the coins far apart from each other, then the power-ups
   const bricks=[]; for(let i=0;i<soft.length;i++) if(soft[i]) bricks.push(i);
   for(let k=bricks.length-1;k>0;k--){ const j=Math.floor(R()*(k+1)); [bricks[k],bricks[j]]=[bricks[j],bricks[k]]; }
-  const need=COIN_GOAL[Math.min(GS.loop,COIN_GOAL.length-1)], coins=[];
+  const need=COIN_GOAL, coins=[];
   for(const minD of [6,4,2,0]) for(const i of bricks){ if(coins.length>=need) break; if(item[i]) continue;
     const x=i%GW, y=(i/GW)|0; if(near(x,y,HERO,3)&&minD) continue;
     if(coins.every(c=>Math.abs(c%GW-x)+Math.abs(((c/GW)|0)-y)>=minD)){ coins.push(i); item[i]=IT.COIN; } }
@@ -81,6 +82,25 @@ const brickT=once(()=>cvTex2(256,256,(g,b,w,h)=>{
   }
   grain(g,b,w,h,12,.16,5,4,.06);
 },false));
+// the same bricks with a gold coin set into the face, plus a mask that makes only the coin glow
+function drawCoin(g,cx,cy,r){
+  const gr=g.createRadialGradient(cx-r*.3,cy-r*.35,r*.1,cx,cy,r); gr.addColorStop(0,'#fff6c0'); gr.addColorStop(.5,'#f4c430'); gr.addColorStop(1,'#a06a08');
+  g.fillStyle='#4a2a08'; g.beginPath(); g.arc(cx,cy,r+6,0,TAU); g.fill();
+  g.fillStyle=gr; g.beginPath(); g.arc(cx,cy,r,0,TAU); g.fill();
+  g.strokeStyle='#a87010'; g.lineWidth=4; g.beginPath(); g.arc(cx,cy,r*.78,0,TAU); g.stroke();
+  g.fillStyle='#ffe680'; g.strokeStyle='#8a5a06'; g.lineWidth=2.5; g.beginPath();
+  for(let k=0;k<10;k++){ const a=-PI/2+k*PI/5, rr=k%2?r*.26:r*.58; g.lineTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr); } g.closePath(); g.fill(); g.stroke();
+}
+const coinBrickT=once(()=>{
+  const t=brickT(), w=256, h=256, r=76;
+  const mk=()=>{ const c=document.createElement('canvas'); c.width=w; c.height=h; return c; };
+  const cv=mk(), bv=mk(), ev=mk(), g=cv.getContext('2d'), b=bv.getContext('2d'), e=ev.getContext('2d');
+  g.drawImage(t.map.image,0,0); b.drawImage(t.bump.image,0,0); drawCoin(g,w/2,h/2,r);
+  b.fillStyle=hg(40); b.beginPath(); b.arc(w/2,h/2,r+6,0,TAU); b.fill(); b.fillStyle=hg(235); b.beginPath(); b.arc(w/2,h/2,r,0,TAU); b.fill();
+  e.fillStyle='#000'; e.fillRect(0,0,w,h); drawCoin(e,w/2,h/2,r);
+  const map=new THREE.CanvasTexture(cv), bump=new THREE.CanvasTexture(bv), glow=new THREE.CanvasTexture(ev);
+  map.colorSpace=glow.colorSpace=THREE.SRGBColorSpace; return {map,bump,glow};
+});
 // checkered lawn, one 2x2 tile = 2x2 cells
 const lawnT=once(()=>cvTex2(256,256,(g,b,w,h)=>{
   pxFill(g,w,h,(x,y)=>{ const dark=((x>>7)+(y>>7))%2, n=fbm(x/w*10,y/h*10,10,4), n2=fbm(x/w*48,y/h*48,48,2);
@@ -175,12 +195,19 @@ const WORLD={name:'bomb', wallH:HARD_H,
   },
   decorate(W){
     W.bodies.castShadow=W.bodies.receiveShadow=true;
-    const t=brickT(), list=[]; for(let i=0;i<B.soft.length;i++) if(B.soft[i]) list.push(i);
-    const mesh=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshStandardMaterial({color:0xffffff,map:t.map,bumpMap:t.bump,bumpScale:2.6,roughness:.75}),Math.max(1,list.length));
-    const R=mulberry(9); list.forEach((i,k)=>{ const v=.9+R()*.18; mesh.setColorAt(k,new THREE.Color(v,v*.97,v*.95)); B.softK[i]=k; });
-    mesh.castShadow=mesh.receiveShadow=true; W.g.add(mesh); B.softMesh=mesh; B.softList=list;
+    // two brick meshes: plain bricks and coin bricks (gold coin on every face, softly glowing)
+    const t=brickT(), ct=coinBrickT(), lists=[[],[]];
+    for(let i=0;i<B.soft.length;i++) if(B.soft[i]) lists[B.item[i]===IT.COIN?1:0].push(i);
+    const mats=[new THREE.MeshStandardMaterial({color:0xffffff,map:t.map,bumpMap:t.bump,bumpScale:2.6,roughness:.75}),
+      new THREE.MeshStandardMaterial({color:0xffffff,map:ct.map,bumpMap:ct.bump,bumpScale:2.6,roughness:.6,metalness:.15,emissive:0xffc040,emissiveMap:ct.glow,emissiveIntensity:.7})];
+    const R=mulberry(9);
+    B.softMeshes=lists.map((list,m)=>{ const mesh=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),mats[m],Math.max(1,list.length));
+      list.forEach((i,k)=>{ const v=.9+R()*.18; mesh.setColorAt(k,new THREE.Color(v,v*.97,v*.95)); B.softK[i]=k; B.softM[i]=m; });
+      if(!list.length) mesh.setMatrixAt(0,ZERO);
+      mesh.castShadow=mesh.receiveShadow=true; W.g.add(mesh); return mesh; });
+    B.softList=[...lists[0],...lists[1]];
   },
-  layout(W,r){ B.softList.forEach((i,k)=>placeSoft(k,i,riseAt(r,i%GW,(i/GW)|0),1)); B.softMesh.instanceMatrix.needsUpdate=true; },
+  layout(W,r){ for(const i of B.softList) placeSoft(i,riseAt(r,i%GW,(i/GW)|0),1); softDirty(); },
   floor(W){
     const t=lawnT(); for(const x of [t.map,t.bump]){ x.repeat.set(GW/2,GH/2); x.offset.set(.5,.5); }
     const fl=new THREE.Mesh(new THREE.PlaneGeometry(GW*S,GH*S),new THREE.MeshStandardMaterial({color:0xffffff,map:t.map,bumpMap:t.bump,bumpScale:1.2,roughness:.92}));
@@ -189,10 +216,12 @@ const WORLD={name:'bomb', wallH:HARD_H,
   dots:{geo:dotGeo, mat:()=>new THREE.MeshBasicMaterial({color:new THREE.Color(1.7,1.35,.45),toneMapped:false}),
     place(W,i,k){ W.map(i%GW,(i/GW)|0,.5,_o); basisMat(_m4,_o,.8,.8,.8); W.dotMesh.setMatrixAt(k,_m4); }},
 };
-function placeSoft(k,i,h,sc){
-  if(h<=0||sc<=0){ B.softMesh.setMatrixAt(k,ZERO); return; }
-  const hh=Math.max(.02,SOFT_H*h*sc); GS.W3.map(i%GW,(i/GW)|0,hh/2,_o); basisMat(_m4,_o,S*.92*sc,hh,S*.92*sc); B.softMesh.setMatrixAt(k,_m4);
+function placeSoft(i,h,sc){
+  const mesh=B.softMeshes[B.softM[i]], k=B.softK[i];
+  if(h<=0||sc<=0){ mesh.setMatrixAt(k,ZERO); return; }
+  const hh=Math.max(.02,SOFT_H*h*sc); GS.W3.map(i%GW,(i/GW)|0,hh/2,_o); basisMat(_m4,_o,S*.92*sc,hh,S*.92*sc); mesh.setMatrixAt(k,_m4);
 }
+function softDirty(){ for(const m of B.softMeshes) m.instanceMatrix.needsUpdate=true; }
 
 // ---------- bombs and fire ----------
 function dropBomb(){
@@ -252,7 +281,7 @@ function bombsTick(dt){
 }
 // an item that was under a brick pops up
 function reveal(i){
-  const t=B.item[i]; placeSoft(B.softK[i],i,0,0); B.softMesh.instanceMatrix.needsUpdate=true; if(!t) return;
+  const t=B.item[i]; placeSoft(i,0,0); softDirty(); if(!t) return;
   const obj=makeItem(t); GS.W3.fx.add(obj); B.items.push({i,t,obj,age:0});
   if(t===IT.COIN){ SFX.coin(); hint('A COIN!',1); }
 }
@@ -300,7 +329,7 @@ function syncFx(dt){
   for(let i=n;i<B.fireN;i++){ M.setMatrixAt(i,ZERO); C.setMatrixAt(i,ZERO); }
   B.fireN=n; M.instanceMatrix.needsUpdate=C.instanceMatrix.needsUpdate=true;
   // bricks crumbling: sink and shrink
-  if(B.crumbles.length){ for(const c of B.crumbles){ const a=clamp(c.t/.35,0,1); placeSoft(B.softK[c.i],c.i,1-a*.6,1-a*.55); } B.softMesh.instanceMatrix.needsUpdate=true; }
+  if(B.crumbles.length){ for(const c of B.crumbles){ const a=clamp(c.t/.35,0,1); placeSoft(c.i,1-a*.6,1-a*.55); } softDirty(); }
   for(const it of B.items){ it.age+=dt; const s=easeOut(clamp(it.age/.35,0,1));
     W.map(it.i%GW,(it.i/GW)|0,.95+Math.sin(t*3+it.i)*.12,_o); it.obj.position.copy(_o.p); it.obj.scale.setScalar(s*1.3); it.obj.userData.spin.rotation.y=t*2.4+it.i; }
   const u=B.gate.userData; u.fieldM.opacity=(B.gateOpen?.5:.32)+Math.sin(t*(B.gateOpen?9:4))*.12;
@@ -335,7 +364,7 @@ const P={
     for(const q of [B.fireOut,B.fireCore]){ for(let i=0;i<N;i++) q.setMatrixAt(i,ZERO); q.frustumCulled=false; fx.add(q); }
     B.fireN=N; B.gate=makeGate(B.need); GS.W3.map(GATE[0],GATE[1],0,_o); B.gate.position.copy(_o.p); fx.add(B.gate);
   },
-  hint:()=>(TOUCH?'TAP = BOMB':'SPACE = BOMB')+' · FIND '+B.need+' COINS UNDER THE BRICKS',
+  hint:()=>(TOUCH?'TAP = BOMB':'SPACE = BOMB')+' · BLOW UP THE '+B.need+' GOLD COIN BRICKS',
   hooks:()=>({
     hit:e=>{ if(e){ e.dx=-e.dx; e.dy=-e.dy; e.decided=false; } hurtHero('CAUGHT'); },
     dot:i=>hideDot3(i),
@@ -344,7 +373,7 @@ const P={
   camera(){ cam.hgt=17; cam.back=10; cam.ahead=1; cam.k=5; cam.fov=55; },
   start(){
     const A=genArena(606+GS.loop*17);
-    Object.assign(B,{soft:A.soft,item:A.item,need:A.need,softK:new Int32Array(GW*GH).fill(-1),softList:[],softMesh:null,
+    Object.assign(B,{soft:A.soft,item:A.item,need:A.need,softK:new Int32Array(GW*GH).fill(-1),softM:new Uint8Array(GW*GH),softList:[],softMeshes:[],
       bombs:[],pool:[],flames:[],fire:new Float32Array(GW*GH),crumbles:[],items:[],coins:0,maxBombs:1,range:2,
       gateOpen:false,gateNag:false,gateIdx:GATE[1]*GW+GATE[0],want:false});
     const m={W:GW,H:GH,wrapX:false,wrapY:false,cell:new Uint8Array(GW*GH),dot:new Uint8Array(GW*GH),hgt:new Float32Array(GW*GH),solid:new Uint8Array(GW*GH)};
@@ -374,7 +403,7 @@ const P={
   hud:()=>({progress:B.coins/Math.max(1,B.need), left:B.gateOpen?'GATE OPEN → GO!':'COINS '+B.coins+'/'+B.need+' · BOMBS '+B.maxBombs+' · FIRE '+B.range}),
   mini:{cs:6, scale:[1,1.3], wall:'#9aa0ac', bg:'rgba(30,70,24,.88)', dot:'#ffe08a', pow:'#29f0ff'},
   miniExtras(g,cs,t){
-    g.fillStyle='#c8683a'; for(const i of B.softList) if(B.soft[i]) g.fillRect((i%GW)*cs+.5,((i/GW)|0)*cs+.5,cs-1,cs-1);
+    for(const i of B.softList) if(B.soft[i]){ g.fillStyle=B.item[i]===IT.COIN?'#ffd040':'#c8683a'; g.fillRect((i%GW)*cs+.5,((i/GW)|0)*cs+.5,cs-1,cs-1); }
     for(const it of B.items){ g.fillStyle=it.t===IT.COIN?'#ffd040':'#ffffff'; g.fillRect((it.i%GW)*cs+1,((it.i/GW)|0)*cs+1,cs-2,cs-2); }
     for(let i=0;i<B.fire.length;i++) if(B.fire[i]>0){ g.fillStyle='#ff8a20'; g.fillRect((i%GW)*cs,((i/GW)|0)*cs,cs,cs); }
     for(const b of B.bombs){ g.fillStyle=(t*8|0)%2?'#ff3020':'#000'; g.fillRect(b.x*cs+1,b.y*cs+1,cs-2,cs-2); }
