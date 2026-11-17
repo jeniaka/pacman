@@ -14,7 +14,7 @@ import {PL} from './phases/p4-block-world.js';
 import {GR} from './phases/p5-land-grab.js';
 import {miniC} from './ui/minimap.js';
 import {banner, flash, hidePanel, hint, hud, setGlow, showPanel, updHearts} from './ui/hud.js';
-import {QA, autoQuality, qaPix} from './engine/quality.js';
+import {QA, autoQuality, qaApply} from './engine/quality.js';
 import {phases} from './phases/index.js';
 // ================= MAIN: game flow, shared by every phase =================
 // GS.P is the current phase object (see js/phases/README.md). Phases never call each other:
@@ -48,7 +48,7 @@ function setPhaseUI(P){
   document.body.classList.toggle('fps',!!u.fps); document.body.classList.toggle('pix',!!u.pad);
   $('pad').style.display=(u.pad&&TOUCH)?'flex':'none';
   for(const id of ['gun','sbar','xhair']) $(id).style.display=u.fps?'block':'none';
-  setPix(qaPix()); const [bs,bt]=u.bloom||[.42,.32]; bloom.strength=bs; bloom.threshold=bt;
+  qaApply(); const [bs,bt]=u.bloom||[.42,.32]; bloom.strength=bs; bloom.threshold=bt;
   sunSetup(!!u.sun&&QA.lvl<3,u.sun||26);
   $('wanted').style.display=u.wanted?'block':'none'; $('mission').style.display='none'; $('siren').style.opacity=0;
   cam.mode=u.cam||'follow'; cam.lax=cam.lay=0;

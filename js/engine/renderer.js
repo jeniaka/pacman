@@ -20,6 +20,7 @@ export const composer=new EffectComposer(renderer,composerRT); composer.addPass(
 export const bloom=new UnrealBloomPass(new THREE.Vector2(512,512),.42,.4,.32); composer.addPass(bloom); composer.addPass(new OutputPass());
 const PMREM=new THREE.PMREMGenerator(renderer);
 let PIX=Math.min(devicePixelRatio||1,1.75);
+export function setSamples(n){ for(const rt of [composer.renderTarget1,composer.renderTarget2]) if(rt.samples!==n){ rt.samples=n; rt.dispose(); } }
 export function setPix(r){ PIX=r; renderer.setPixelRatio(r); composer.setPixelRatio(r); resize3(); }
 function resize3(){ renderer.setSize(innerWidth,innerHeight,false); composer.setSize(innerWidth,innerHeight); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); }
 addEventListener('resize',resize3); resize3();
